@@ -26,6 +26,12 @@ pip install pyserial
 
 If `pip` is not available in the active environment, use `python -m pip install pyserial`.
 
+For the flash helper, install the xmodem requirements file as well:
+
+```powershell
+python -m pip install -r gv2_firmware\xmodem\requirements.txt
+```
+
 ## Available Models
 
 - `yolo11n_vespa_2026-02v1_30pxNULL_full_integer_quant_vela.tflite`
@@ -122,6 +128,48 @@ python .\xmodem\xmodem_send.py `
   --protocol=xmodem `
   --file=we2_image_gen_local/output_case1_sec_wlcsp/output.img `
   --model="model_zoo/tflm_yolo11_od/yolo11n_vespa_2026-02v1_allpxNULL_full_integer_quant_vela.tflite 0xB7B000 0x00000"
+```
+
+### Recommended helper script
+
+A helper script is included at `gv2_firmware/xmodem/flash_gv2.ps1` for Windows and `gv2_firmware/xmodem/flash_gv2.sh` for macOS/Linux.
+
+From the repository root, run:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\gv2_firmware\xmodem\flash_gv2.ps1 -Port COM3
+```
+
+The helper installs missing xmodem dependencies, resolves the firmware and model file paths, and launches the flash command.
+
+### Foolproof flash manual
+
+1. Open PowerShell and go to the repo root:
+   ```powershell
+   Set-Location C:\DEV\VST-YOLO11\vespa_smart_trap
+   ```
+2. Find the active serial port:
+   ```powershell
+   Get-PnpDevice -Class Ports | Where-Object Status -eq 'OK' | Select-Object FriendlyName, InstanceId
+   ```
+3. Use the port shown as `OK` in the helper script command.
+4. Run the helper from the repo root:
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File .\gv2_firmware\xmodem\flash_gv2.ps1 -Port COM3
+   ```
+5. When the board prints `Please press reset button!!`, press reset on the GV2 module.
+6. Wait for the X-Modem transfer to complete and the board reboot.
+
+If the helper command fails because the board path is wrong, make sure you are in the repository root and that `.
+v2_firmware\xmodem\flash_gv2.ps1` exists.
+
+If you want to flash a different model or firmware image:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\gv2_firmware\xmodem\flash_gv2.ps1 `
+  -Port COM3 `
+  -FirmwareFile '..\we2_image_gen_local\output_case1_sec_wlcsp\output.img' `
+  -ModelFile '..\model_zoo\tflm_yolo11_od\yolo11n_vespa_2026-02v1_60pxNULL_full_integer_quant_vela.tflite'
 ```
 
 ## During Flashing
